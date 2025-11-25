@@ -14,17 +14,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-          cache: 'pnpm'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          run_install: false
+      - name: Setup Node.js and pnpm
+        run: |
+          curl -fsSL https://get.pnpm.io/install.sh | sh -
+          export PNPM_HOME="/home/runner/.local/share/pnpm"
+          export PATH="$PNPM_HOME:$PATH"
+          echo "PNPM_HOME=$PNPM_HOME" >> $GITHUB_ENV
+          echo "$PNPM_HOME" >> $GITHUB_PATH
 
       - name: Install dependencies
         run: pnpm install
@@ -34,19 +30,12 @@ jobs:
 
       - name: Verify dist contents
         run: |
-          echo "=== Dist folder contents ==="
+          echo "=== Build results ==="
           ls -la dist/
-          echo "=== Checking for index.html ==="
-          if [ -f "dist/index.html" ]; then
-            echo "✅ index.html found in dist!"
-          else
-            echo "❌ index.html NOT found in dist!"
-            ls -la dist/  # Покажем что там есть
-            exit 1
-          fi
+          [ -f "dist/index.html" ] && echo "✅ SUCCESS: index.html found" || echo "❌ FAIL: index.html missing"
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist  # ← Меняем build на dist!
+          publish_dir: ./dist

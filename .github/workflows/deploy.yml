@@ -3,7 +3,7 @@ name: Deploy to GitHub Pages
 # Запуск при пуше в основную ветку
 on:
   push:
-    branches: [ "master" ]  # если основная ветка main — замени на main
+    branches: [ "master" ]  # Если ваша основная ветка main — заменить на main
 
 permissions:
   contents: write
@@ -26,21 +26,23 @@ jobs:
           node-version: '22'
           cache: 'pnpm'
 
-      # 3️⃣ Устанавливаем pnpm
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
+      # 3️⃣ Устанавливаем pnpm глобально
+      - name: Install pnpm globally
+        run: npm install -g pnpm
 
-      # 4️⃣ Устанавливаем зависимости
+      # 4️⃣ Проверяем что pnpm доступен
+      - name: Verify pnpm
+        run: pnpm -v
+
+      # 5️⃣ Устанавливаем зависимости проекта
       - name: Install dependencies
         run: pnpm install
 
-      # 5️⃣ Строим проект (vite build создаёт dist)
+      # 6️⃣ Строим проект (vite build создаёт dist)
       - name: Build project
         run: pnpm run build
 
-      # 6️⃣ Проверяем наличие dist/index.html
+      # 7️⃣ Проверяем наличие dist/index.html
       - name: Verify build contents
         run: |
           echo "=== dist folder contents ==="
@@ -52,17 +54,17 @@ jobs:
             exit 1
           fi
 
-      # 7️⃣ Настраиваем GitHub Pages
+      # 8️⃣ Настраиваем GitHub Pages
       - name: Setup Pages
         uses: actions/configure-pages@v3
 
-      # 8️⃣ Загружаем собранный артефакт (обновлённая версия)
+      # 9️⃣ Загружаем собранный артефакт
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
 
-      # 9️⃣ Деплой на GitHub Pages
+      # 🔟 Деплой на GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2

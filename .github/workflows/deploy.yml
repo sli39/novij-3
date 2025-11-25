@@ -1,8 +1,9 @@
 name: Deploy to GitHub Pages
 
+# Запуск при пуше в основную ветку
 on:
   push:
-    branches: [ "master" ] # или "master", если у тебя основная ветка master
+    branches: [ "master" ]  # если основная ветка main — замени на main
 
 permissions:
   contents: write
@@ -15,17 +16,17 @@ jobs:
 
     steps:
       # 1️⃣ Забираем код
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Устанавливаем Node.js
+      # 2️⃣ Устанавливаем Node.js >=22 (Vite >=7 требует)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'pnpm'
 
-      # 3️⃣ Устанавливаем pnpm (официальный экшен)
+      # 3️⃣ Устанавливаем pnpm
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
@@ -35,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      # 5️⃣ Строим проект
+      # 5️⃣ Строим проект (vite build создаёт dist)
       - name: Build project
         run: pnpm run build
 
@@ -43,7 +44,7 @@ jobs:
       - name: Verify build contents
         run: |
           echo "=== dist folder contents ==="
-          ls dist/
+          ls -la dist/
           if [ -f "dist/index.html" ]; then
             echo "✅ index.html found!"
           else
@@ -55,9 +56,9 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v3
 
-      # 8️⃣ Загружаем собранный артефакт
+      # 8️⃣ Загружаем собранный артефакт (обновлённая версия)
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
 
@@ -65,4 +66,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
-

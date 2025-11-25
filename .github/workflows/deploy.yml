@@ -1,70 +1,52 @@
 name: Deploy to GitHub Pages
 
-# Запуск при пуше в основную ветку
 on:
   push:
-    branches: [ "master" ]  # Если ваша основная ветка main — заменить на main
+    branches: [ "master" ]
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
-      # 1️⃣ Забираем код
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Устанавливаем Node.js >=22 (Vite >=7 требует)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '18'
           cache: 'pnpm'
 
-      # 3️⃣ Устанавливаем pnpm глобально
-      - name: Install pnpm globally
-        run: npm install -g pnpm
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
 
-      # 4️⃣ Проверяем что pnpm доступен
-      - name: Verify pnpm
-        run: pnpm -v
-
-      # 5️⃣ Устанавливаем зависимости проекта
       - name: Install dependencies
         run: pnpm install
 
-      # 6️⃣ Строим проект (vite build создаёт dist)
       - name: Build project
         run: pnpm run build
 
-      # 7️⃣ Проверяем наличие dist/index.html
-      - name: Verify build contents
+      - name: Verify dist contents
         run: |
-          echo "=== dist folder contents ==="
+          echo "=== Dist folder contents ==="
           ls -la dist/
+          echo "=== Checking for index.html ==="
           if [ -f "dist/index.html" ]; then
-            echo "✅ index.html found!"
+            echo "✅ index.html found in dist!"
           else
-            echo "❌ index.html NOT found!"
+            echo "❌ index.html NOT found in dist!"
+            ls -la dist/  # Покажем что там есть
             exit 1
           fi
 
-      # 8️⃣ Настраиваем GitHub Pages
-      - name: Setup Pages
-        uses: actions/configure-pages@v3
-
-      # 9️⃣ Загружаем собранный артефакт
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./dist
-
-      # 🔟 Деплой на GitHub Pages
       - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v2
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist  # ← Меняем build на dist!

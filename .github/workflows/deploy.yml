@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ "master" ]  # если твоя основная ветка master
+    branches: [ "master" ]  # Основная ветка
 
 permissions:
   contents: write
@@ -14,24 +14,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Забираем код из репозитория
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2️⃣ Устанавливаем Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22' # Vite требует >=20.19
+          node-version: '22'  # Vite >=7 требует Node >=20.19
           cache: 'pnpm'
 
+      # 3️⃣ Устанавливаем pnpm
       - name: Install pnpm
         run: npm install -g pnpm
 
+      # 4️⃣ Устанавливаем зависимости
       - name: Install dependencies
         run: pnpm install
 
+      # 5️⃣ Строим проект
       - name: Build project
         run: pnpm run build
 
+      # 6️⃣ Проверяем наличие dist/index.html
       - name: Verify build contents
         run: |
           echo "=== dist folder contents ==="
@@ -43,14 +49,17 @@ jobs:
             exit 1
           fi
 
+      # 7️⃣ Настраиваем GitHub Pages
       - name: Setup Pages
         uses: actions/configure-pages@v3
 
+      # 8️⃣ Загружаем собранный артефакт (актуальная версия)
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
 
+      # 9️⃣ Деплой на GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
